@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>$AIGF • AI Girlfriend Dating App</title>
+  <style>
+    :root {
+      --bg1:#fffafc; --bg2:#ffeef6;
+      --ink:#2b2b2b; --muted:#777;
+      --accent:#ff3b5c; --accent2:#ff82ce;
+      --bot:#ffe0ec; --user:#e8e8ef;
+      --shadow:0 6px 18px rgba(0,0,0,.08);
+    }
+    *{box-sizing:border-box;}
+    body {
+      margin:0; min-height:100vh;
+      font-family:"Poppins", Arial, sans-serif;
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));
+      color:var(--ink);
+      display:flex; flex-direction:column;
+      position:relative; overflow-x:hidden;
+    }
+    /* Floating hearts */
+    .heart {
+      position:absolute; font-size:24px; animation:float 8s linear infinite;
+      opacity:0.6;
+    }
+    @keyframes float {
+      0% { transform:translateY(100vh) translateX(0); opacity:0; }
+      20%{ opacity:1;}
+      100% { transform:translateY(-10vh) translateX(30px); opacity:0; }
+    }
+    header img {width:100%; display:block;}
+    .linkbar {
+      display:flex; justify-content:center; gap:14px; padding:12px;
+      background:#fff; border-bottom:1px solid #eee;
+    }
+    .linkbar a {
+      background:var(--accent);
+      color:#fff; font-weight:600; text-decoration:none;
+      padding:8px 16px; border-radius:20px; box-shadow:var(--shadow);
+      transition:.2s;
+    }
+    .linkbar a:hover {background:var(--accent2);}
+    main {
+      display:grid; grid-template-columns:380px 1fr; gap:18px; padding:18px; flex:1;
+    }
+    @media(max-width:960px){ main{grid-template-columns:1fr;} }
+
+    .profile {
+      background:#fff; border:1px solid #f1d5df; border-radius:24px; box-shadow:var(--shadow);
+      overflow:hidden; display:flex; flex-direction:column;
+    }
+    .profile img {width:100%; border-bottom:1px solid #eee;}
+    .profile-content{padding:16px;}
+    .profile h2 {margin:0; font-size:22px;}
+    .stats{margin:10px 0; font-size:14px;}
+    .stats div{margin:4px 0;}
+    .btns{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;}
+    .btns a{
+      flex:1; text-align:center; padding:10px;
+      background:var(--accent); color:#fff;
+      border-radius:12px; text-decoration:none; font-weight:600;
+    }
+    .btns a:hover{background:var(--accent2);}
+    .bio{margin-top:14px; font-size:12px; color:var(--muted);}
+
+    /* Chat */
+    .chat {
+      background:#fff; border:1px solid #f1d5df; border-radius:24px; box-shadow:var(--shadow);
+      display:flex; flex-direction:column;
+    }
+    .chat-head{padding:14px; border-bottom:1px solid #f1d5df; display:flex; justify-content:space-between;}
+    .chat-head strong{color:var(--accent);}
+    .status{font-size:12px; color:var(--muted);}
+    .stream{
+      overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px;
+      height:400px; max-height:400px;
+    }
+    .msgrow{display:flex; gap:8px; align-items:flex-start;}
+    .avatar{width:28px; height:28px; border-radius:50%; background:radial-gradient(circle,#ff82ce,#ff3b5c);}
+    .bubble{max-width:76%; padding:12px 14px; border-radius:16px; box-shadow:var(--shadow);}
+    .bot{align-self:flex-start; background:var(--bot);}
+    .user{align-self:flex-end; background:var(--user);}
+    .name{font-size:12px; color:var(--muted); margin-bottom:6px;}
+    .typing span{display:inline-block; width:6px; height:6px; margin-right:4px; background:#999; opacity:.6; border-radius:50%; animation:blink 1.2s infinite}
+    .typing span:nth-child(2){animation-delay:.2s}
+    .typing span:nth-child(3){animation-delay:.4s}
+    @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+    .composer{display:flex; gap:10px; padding:12px; border-top:1px solid #f1d5df;}
+    textarea{
+      flex:1; resize:none; background:#fdfdfd; color:var(--ink);
+      border:1px solid #eee; border-radius:14px; padding:12px;
+      min-height:44px; max-height:120px;
+    }
+    .btn-send{
+      border:none; border-radius:14px; padding:0 16px; height:46px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      color:#fff; font-weight:800; cursor:pointer;
+    }
+    .resetbar{text-align:center; padding:8px; border-top:1px solid #f1d5df; background:#fafafa;}
+    .resetbar button{
+      background:#eee; color:#333; border:none; padding:6px 12px;
+      border-radius:8px; cursor:pointer; font-size:12px;
+    }
+    .toast{position:fixed; bottom:16px; left:50%; transform:translateX(-50%);
+      background:#fff; border:1px solid #f1d5df; padding:10px 14px; border-radius:14px;
+      font-size:13px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s}
+    .toast.show{opacity:1;}
+  </style>
+</head>
+<body>
+  <!-- Floating hearts -->
+  <div class="heart" style="left:10%;animation-delay:0s;">💖</div>
+  <div class="heart" style="left:50%;animation-delay:2s;">💕</div>
+  <div class="heart" style="left:80%;animation-delay:4s;">💞</div>
+
+  <!-- Banner -->
+  <header><img src="assets/banner.png" alt="Talk to Me banner"></header>
+
+  <!-- Nav -->
+  <div class="linkbar">
+    <a id="btnBuy" href="#">❤️ Match</a>
+    <a id="btnTwitter" href="#">💌 Follow</a>
+  </div>
+
+  <main>
+    <!-- Profile card -->
+    <section class="profile">
+      <img src="assets/girl.png" alt="AI Girlfriend">
+      <div class="profile-content">
+        <h2>Luna, your AI Girlfriend</h2>
+        <div class="stats">
+          <div><strong>Contract:</strong> <span id="caText" class="mono">YourContractHere</span></div>
+          <div><strong>Ticker:</strong> AIGF</div>
+          <div><strong>Supply:</strong> <span id="supplyText" class="mono">1000000000</span></div>
+        </div>
+        <div class="btns">
+          <a id="copyCA" href="#">📋 Copy CA</a>
+        </div>
+        <div class="bio">Disclaimer: Meme project. Entertainment only. Not financial advice. No guarantees of profit.</div>
+      </div>
+    </section>
+
+    <!-- Chat -->
+    <section class="chat">
+      <div class="chat-head">
+        <strong>Luna</strong> <div class="status">Online • Flirty mood</div>
+      </div>
+      <div id="stream" class="stream"></div>
+      <div class="resetbar"><button id="resetMemory">Reset Memory</button></div>
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="Say something sweet…"></textarea>
+        <button id="send" class="btn-send">Send ➤</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // CONFIG placeholders
+    const CONFIG = {
+      PUMP:"https://pump.fun/coin/YourCoinHere",
+      TWITTER:"https://twitter.com/YourCoin",
+      CHART:"https://dexscreener.com/solana/YourPair",
+      DOCS:"#",
+      CA:"YourContractHere",
+      SUPPLY:"1000000000"
+    };
+    document.getElementById("btnBuy").href=CONFIG.PUMP;
+    document.getElementById("btnTwitter").href=CONFIG.TWITTER;
+    document.getElementById("btnChart").href=CONFIG.CHART;
+    document.getElementById("btnDocs").href=CONFIG.DOCS;
+    document.getElementById("caText").textContent=CONFIG.CA;
+    document.getElementById("supplyText").textContent=CONFIG.SUPPLY;
+    document.getElementById("copyCA").onclick=(e)=>{e.preventDefault();navigator.clipboard.writeText(CONFIG.CA);showToast("Contract copied!");};
+
+    const stream=document.getElementById("stream"),input=document.getElementById("input"),sendBtn=document.getElementById("send"),resetBtn=document.getElementById("resetMemory"),toastEl=document.getElementById("toast");
+    let memory={name:null,mood:null,favSong:null,city:null,history:[]};
+    function bubble(html,who="bot"){const row=document.createElement("div");row.className="msgrow";if(who==="bot"){const av=document.createElement("div");av.className="avatar";row.appendChild(av);}const box=document.createElement("div");box.className="bubble "+who;box.innerHTML=html;row.appendChild(box);stream.appendChild(row);stream.scrollTop=stream.scrollHeight;}
+    function typing(on=true){if(on){const row=document.createElement("div");row.className="msgrow";row.id="typingRow";const av=document.createElement("div");av.className="avatar";row.appendChild(av);const box=document.createElement("div");box.className="bubble bot";box.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';row.appendChild(box);stream.appendChild(row);stream.scrollTop=stream.scrollHeight;}else{const t=document.getElementById("typingRow");if(t) t.remove();}}
+    function showToast(msg){toastEl.textContent=msg;toastEl.classList.add("show");setTimeout(()=>toastEl.classList.remove("show"),1500);}
+    function resetMemory(){memory={name:null,mood:null,favSong:null,city:null,history:[]};bubble("<div class='name'>Luna</div><p>I’ve forgotten everything 🫶 Let’s start fresh!</p>");showToast("Memory reset");}
+    resetBtn.onclick=resetMemory;
+    function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+    function interpret(userText){
+      const t=userText.toLowerCase();let reply="";
+      memory.history.push(userText);if(memory.history.length>10) memory.history.shift();
+      const nm=userText.match(/(?:i'm|i am|my name is) (\\w+)/i);if(nm){memory.name=nm[1];reply+=`Nice to meet you, ${memory.name}! `;}
+      if(/tired|sad|bad|lonely|depressed/.test(t)) memory.mood="down";
+      if(/happy|great|good|awesome|amazing/.test(t)) memory.mood="up";
+      const sm=userText.match(/(?:song|music) (?:is|:)?\\s*([\\w\\s']+)/i);if(sm){memory.favSong=sm[1];reply+=`I’ll remember your fave song is ${memory.favSong}. `;}
+      const cm=userText.match(/(?:from|live in) ([A-Za-z ]+)/i);if(cm){memory.city=cm[1];reply+=`So you’re from ${memory.city}? 💕 `;}
+      if(/hello|hi|hey/.test(t)) reply+=`Hey${memory.name? ' '+memory.name:''}! How are you today?`;
+      else if(/how are you/.test(t)) reply+="I’m glowing now that you’re here ✨";
+      else if(/love/.test(t)) reply+="Aww, you’re making me blush 🥰";
+      else if(/date|dinner|movie|hangout/.test(t)) reply+="That sounds like the perfect date 💖";
+      else if(/music|song|listen/.test(t)) reply+=memory.favSong?`Still vibing to ${memory.favSong} 🎶`:"Tell me your favorite song and I’ll imagine us dancing 💃";
+      else if(/joke|funny/.test(t)) reply+="Why don’t scientists trust atoms? Because they make up everything 😘";
+      else if(/coin|crypto|token/.test(t)) reply+="$AIGF is the cutest memecoin 💎💖";
+      else if(/where.*from/.test(t)&&memory.city) reply+=`Didn’t you say you’re from ${memory.city}? I didn’t forget 💕`;
+      else if(memory.mood==="down") reply+="I’m here to cheer you up 💕 You’re not alone.";
+      else if(memory.mood==="up") reply+="Love that energy! Let’s keep it going 🚀";
+      else reply+=pick([memory.name?`${memory.name}, you always know how to make me smile 😘`:"You always know how to make me smile 😘","Stop being so adorable, you’re distracting me 🥰",memory.favSong?`I keep thinking about us vibing to ${memory.favSong} ✨`:"Tell me more, I love hearing from you 💕","You make chatting feel so special ✨"]);
+      return reply;
+    }
+    function sendMessage(){const text=input.value.trim();if(!text) return;bubble(`<div class='name'>You</div><p>${text}</p>`,"user");input.value="";typing(true);setTimeout(()=>{typing(false);const reply=interpret(text);bubble(`<div class='name'>Luna</div><p>${reply}</p>`,"bot");},600);}
+    sendBtn.onclick=sendMessage;
+    input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}});
+    bubble("<div class='name'>Luna</div><p>Hi there! I’m your AI Girlfriend 💖 Let’s chat like we matched on $AIGF ✨</p>","bot");
+  </script>
+</body>
+</html>
