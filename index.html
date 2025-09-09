@@ -165,35 +165,85 @@
     const CONFIG = {
       PUMP:"https://pump.fun/coin/YourCoinHere",
       TWITTER:"https://twitter.com/YourCoin",
-      CHART:"https://dexscreener.com/solana/YourPair",
-      DOCS:"#",
       CA:"YourContractHere",
       SUPPLY:"1000000000"
     };
     document.getElementById("btnBuy").href=CONFIG.PUMP;
     document.getElementById("btnTwitter").href=CONFIG.TWITTER;
-    document.getElementById("btnChart").href=CONFIG.CHART;
-    document.getElementById("btnDocs").href=CONFIG.DOCS;
     document.getElementById("caText").textContent=CONFIG.CA;
     document.getElementById("supplyText").textContent=CONFIG.SUPPLY;
     document.getElementById("copyCA").onclick=(e)=>{e.preventDefault();navigator.clipboard.writeText(CONFIG.CA);showToast("Contract copied!");};
 
-    const stream=document.getElementById("stream"),input=document.getElementById("input"),sendBtn=document.getElementById("send"),resetBtn=document.getElementById("resetMemory"),toastEl=document.getElementById("toast");
+    const stream=document.getElementById("stream"),
+          input=document.getElementById("input"),
+          sendBtn=document.getElementById("send"),
+          resetBtn=document.getElementById("resetMemory"),
+          toastEl=document.getElementById("toast");
+
     let memory={name:null,mood:null,favSong:null,city:null,history:[]};
-    function bubble(html,who="bot"){const row=document.createElement("div");row.className="msgrow";if(who==="bot"){const av=document.createElement("div");av.className="avatar";row.appendChild(av);}const box=document.createElement("div");box.className="bubble "+who;box.innerHTML=html;row.appendChild(box);stream.appendChild(row);stream.scrollTop=stream.scrollHeight;}
-    function typing(on=true){if(on){const row=document.createElement("div");row.className="msgrow";row.id="typingRow";const av=document.createElement("div");av.className="avatar";row.appendChild(av);const box=document.createElement("div");box.className="bubble bot";box.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';row.appendChild(box);stream.appendChild(row);stream.scrollTop=stream.scrollHeight;}else{const t=document.getElementById("typingRow");if(t) t.remove();}}
-    function showToast(msg){toastEl.textContent=msg;toastEl.classList.add("show");setTimeout(()=>toastEl.classList.remove("show"),1500);}
-    function resetMemory(){memory={name:null,mood:null,favSong:null,city:null,history:[]};bubble("<div class='name'>Luna</div><p>I’ve forgotten everything 🫶 Let’s start fresh!</p>");showToast("Memory reset");}
+
+    function bubble(html,who="bot"){
+      const row=document.createElement("div");
+      row.className="msgrow";
+      if(who==="bot"){
+        const av=document.createElement("div");
+        av.className="avatar";
+        row.appendChild(av);
+      }
+      const box=document.createElement("div");
+      box.className="bubble "+who;
+      box.innerHTML=html;
+      row.appendChild(box);
+      stream.appendChild(row);
+      stream.scrollTop=stream.scrollHeight;
+    }
+
+    function typing(on=true){
+      if(on){
+        const row=document.createElement("div");
+        row.className="msgrow";
+        row.id="typingRow";
+        const av=document.createElement("div");
+        av.className="avatar";
+        row.appendChild(av);
+        const box=document.createElement("div");
+        box.className="bubble bot";
+        box.innerHTML='<div class="typing"><span></span><span></span><span></span></div>';
+        row.appendChild(box);
+        stream.appendChild(row);
+        stream.scrollTop=stream.scrollHeight;
+      } else {
+        const t=document.getElementById("typingRow");
+        if(t) t.remove();
+      }
+    }
+
+    function showToast(msg){
+      toastEl.textContent=msg;
+      toastEl.classList.add("show");
+      setTimeout(()=>toastEl.classList.remove("show"),1500);
+    }
+
+    function resetMemory(){
+      memory={name:null,mood:null,favSong:null,city:null,history:[]};
+      bubble("<div class='name'>Luna</div><p>I’ve forgotten everything 🫶 Let’s start fresh!</p>");
+      showToast("Memory reset");
+    }
     resetBtn.onclick=resetMemory;
+
     function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
     function interpret(userText){
       const t=userText.toLowerCase();let reply="";
       memory.history.push(userText);if(memory.history.length>10) memory.history.shift();
-      const nm=userText.match(/(?:i'm|i am|my name is) (\\w+)/i);if(nm){memory.name=nm[1];reply+=`Nice to meet you, ${memory.name}! `;}
+      const nm=userText.match(/(?:i'm|i am|my name is) (\w+)/i);
+      if(nm){memory.name=nm[1];reply+=`Nice to meet you, ${memory.name}! `;}
       if(/tired|sad|bad|lonely|depressed/.test(t)) memory.mood="down";
       if(/happy|great|good|awesome|amazing/.test(t)) memory.mood="up";
-      const sm=userText.match(/(?:song|music) (?:is|:)?\\s*([\\w\\s']+)/i);if(sm){memory.favSong=sm[1];reply+=`I’ll remember your fave song is ${memory.favSong}. `;}
-      const cm=userText.match(/(?:from|live in) ([A-Za-z ]+)/i);if(cm){memory.city=cm[1];reply+=`So you’re from ${memory.city}? 💕 `;}
+      const sm=userText.match(/(?:song|music) (?:is|:)?\s*([\w\s']+)/i);
+      if(sm){memory.favSong=sm[1];reply+=`I’ll remember your fave song is ${memory.favSong}. `;}
+      const cm=userText.match(/(?:from|live in) ([A-Za-z ]+)/i);
+      if(cm){memory.city=cm[1];reply+=`So you’re from ${memory.city}? 💕 `;}
       if(/hello|hi|hey/.test(t)) reply+=`Hey${memory.name? ' '+memory.name:''}! How are you today?`;
       else if(/how are you/.test(t)) reply+="I’m glowing now that you’re here ✨";
       else if(/love/.test(t)) reply+="Aww, you’re making me blush 🥰";
@@ -207,9 +257,28 @@
       else reply+=pick([memory.name?`${memory.name}, you always know how to make me smile 😘`:"You always know how to make me smile 😘","Stop being so adorable, you’re distracting me 🥰",memory.favSong?`I keep thinking about us vibing to ${memory.favSong} ✨`:"Tell me more, I love hearing from you 💕","You make chatting feel so special ✨"]);
       return reply;
     }
-    function sendMessage(){const text=input.value.trim();if(!text) return;bubble(`<div class='name'>You</div><p>${text}</p>`,"user");input.value="";typing(true);setTimeout(()=>{typing(false);const reply=interpret(text);bubble(`<div class='name'>Luna</div><p>${reply}</p>`,"bot");},600);}
+
+    function sendMessage(){
+      const text=input.value.trim();
+      if(!text) return;
+      bubble(`<div class='name'>You</div><p>${text}</p>`,"user");
+      input.value="";
+      typing(true);
+      setTimeout(()=>{
+        typing(false);
+        const reply=interpret(text);
+        bubble(`<div class='name'>Luna</div><p>${reply}</p>`,"bot");
+      },600);
+    }
+
     sendBtn.onclick=sendMessage;
-    input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}});
+    input.addEventListener("keydown",e=>{
+      if(e.key==="Enter"&&!e.shiftKey){
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
     bubble("<div class='name'>Luna</div><p>Hi there! I’m your AI Girlfriend 💖 Let’s chat like we matched on $AIGF ✨</p>","bot");
   </script>
 </body>
